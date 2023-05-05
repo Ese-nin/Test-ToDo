@@ -1,7 +1,5 @@
 {
-  "users": [
-
-  ],
+  "users": [],
   "todos": {
     "id": 1,
     "title": "todo-1"
