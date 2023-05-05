@@ -23,6 +23,7 @@ class Todolists {
             if (data.status === StatusCode.OK) {
                 this.todolist = {...data.data, filter: "all"}
                 app.setAppStatus('succeeded')
+                return 'success'
             } else if (data.status === StatusCode.UNAUTHORIZED) {
                 app.setAppStatus('failed')
                 app.setAppError('You are not authorized')

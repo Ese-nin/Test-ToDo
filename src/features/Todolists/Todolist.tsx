@@ -9,13 +9,12 @@ import {ButtonBlock} from "./ButtonBlock";
 import {TodolistDomainType} from "api/types";
 import {FilterType} from "bll/store/todolists";
 import {Button} from "@mui/material";
-import {Navigate} from "react-router-dom";
+import {Navigate, useNavigate} from "react-router-dom";
 import {Path} from "bll/Path";
-import {getTokenFromLS} from "utils/getTokenFromLS";
 
 type Props = {
     todolist: TodolistDomainType
-    fetchTodo: () => void
+    fetchTodo: () => Promise<'success' | undefined>
     filter: FilterType
     changeTodoFilter: (filter: FilterType) => void
 }
@@ -24,16 +23,25 @@ export const Todolist: React.FC<Props> = observer(({todolist, fetchTodo, filter,
 
         const [activeModal, setActiveModal] = useState(false)
 
-        useEffect(() => {
-            try {
-                const token = getTokenFromLS()
-                if (token) {
-                    fetchTodo()
-                    auth.setIsAuthorized(true)
-                } else return
-            } catch {
+        const navigate = useNavigate()
 
+        useEffect(() => {
+            const tryFetching = async () => {
+                try {
+                    const data = await fetchTodo()
+                    if (data === 'success') {
+                        auth.setIsAuthorized(true)
+                    } else {
+                        auth.setIsAuthorized(false)
+                        navigate(Path.LOGIN)
+                    }
+                } catch {
+                    auth.setIsAuthorized(false)
+                    navigate(Path.LOGIN)
+                }
             }
+            tryFetching()
+
 
 
             if (!auth.profile.isAuth) {

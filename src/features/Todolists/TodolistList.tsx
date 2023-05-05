@@ -5,6 +5,7 @@
 // import {observer} from "mobx-react-lite";
 // import s from './todos.module.css'
 //
+// ===============  if it is expected more todolists then one ============
 //
 // export const TodolistList: React.FC = observer(() => {
 //
