@@ -1,0 +1,116 @@
+import {StatusCode, StatusType, TaskDomainType} from "api/types";
+import {makeAutoObservable} from "mobx";
+import app, {AppStatusType} from 'bll/store/app'
+import {tasksAPI} from "api";
+import {FilterType} from "./todolists";
+import {handleAppErrors, handleNetworkErrors} from "utils/handleErrors";
+
+export type TaskType = TaskDomainType & { entityStatus: AppStatusType }
+
+class Tasks {
+
+    tasks: TaskType[] = []
+
+    constructor() {
+        makeAutoObservable(this)
+    }
+
+    fetchTasks = async (filter?: FilterType) => {
+        app.setAppStatus('loading')
+        try {
+            const data = filter ? await tasksAPI.getTasks(filter) : await tasksAPI.getTasks()
+            if (data.status === StatusCode.OK) {
+                this.tasks = data.data.map(t => ({...t, entityStatus: 'idle'}))
+                app.setAppStatus('succeeded')
+            } else if (data.status === StatusCode.UNAUTHORIZED) {
+                app.setAppStatus('failed')
+                app.setAppError('You are not authorized')
+            } else {
+                handleAppErrors()
+            }
+        } catch (err) {
+            handleNetworkErrors(err)
+        }
+    }
+
+    addTask = async (todoId: number, title: string) => {
+        app.setAppStatus('loading')
+        try {
+            const data = await tasksAPI.addTask(todoId, title)
+            if (data.status === StatusCode.CREATED) {
+                this.tasks.push({...data.data, status: 'undone', entityStatus: "idle"})
+                app.setAppStatus('succeeded')
+            } else {
+                handleAppErrors()
+            }
+        } catch (err) {
+            handleNetworkErrors(err)
+        }
+    }
+
+    removeTask = async (taskId: number) => {
+        app.setAppStatus('loading')
+        this.changeTaskEntityStatus(taskId, 'loading')
+        try {
+            const data = await tasksAPI.removeTask(taskId)
+            if (data.status === StatusCode.OK) {
+                this.tasks = this.tasks.filter(t => t.id !== taskId)
+                app.setAppStatus('succeeded')
+            } else if (data.status === StatusCode.UNAUTHORIZED) {
+                app.setAppStatus('failed')
+                app.setAppError('You are not authorized')
+            } else {
+                handleAppErrors()
+            }
+        } catch (err) {
+            handleNetworkErrors(err)
+        }
+    }
+
+    changeTaskStatus = async (taskId: number, status: StatusType) => {
+        app.setAppStatus('loading')
+        this.changeTaskEntityStatus(taskId, 'loading')
+        try {
+            const data = await tasksAPI.changeStatus(taskId, status)
+            if (data.status === StatusCode.OK) {
+                this.tasks = this.tasks.map(t => t.id === taskId ? {...t, status} : t)
+                app.setAppStatus('succeeded')
+            } else {
+                handleAppErrors()
+            }
+        } catch (err) {
+            handleNetworkErrors(err)
+        } finally {
+            this.changeTaskEntityStatus(taskId, 'idle')
+        }
+
+    }
+
+    renameTask = async (taskId: number, title: string) => {
+        app.setAppStatus('loading')
+        this.changeTaskEntityStatus(taskId, 'loading')
+        try {
+            const data = await tasksAPI.renameTask(taskId, title)
+            if (data.status === StatusCode.OK) {
+                this.tasks = this.tasks.map(t => t.id === taskId ? {...t, title} : t)
+                app.setAppStatus('succeeded')
+            } else {
+                handleAppErrors()
+            }
+        } catch (err) {
+            handleNetworkErrors(err)
+        } finally {
+            this.changeTaskEntityStatus(taskId, 'idle')
+        }
+    }
+
+    changeTaskEntityStatus = (taskId: number, status: AppStatusType) => {
+        this.tasks = this.tasks.map(t => t.id === taskId ? {...t, entityStatus: status} : t)
+    }
+
+    resetTasks() {
+        this.tasks = []
+    }
+}
+
+export default new Tasks()
