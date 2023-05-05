@@ -20,6 +20,7 @@ export const Header = observer(() => {
     let onClickHandler: () => void;
     if (isAuth) {
         onClickHandler = () => {
+            localStorage.removeItem('token')
             auth.setIsAuthorized(false)
             todo.resetTodolists()
             tasks.resetTasks()
