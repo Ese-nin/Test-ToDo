@@ -1,0 +1,19 @@
+
+.form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin: 15% auto 0;
+  border: 1px solid darkgoldenrod;
+  border-radius: 15px;
+  min-height: 350px;
+  width: 250px;
+  background-color: antiquewhite;
+
+}
+
+.errorMessage {
+  color: crimson;
+}

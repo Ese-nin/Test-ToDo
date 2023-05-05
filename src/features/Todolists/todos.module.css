@@ -1,0 +1,29 @@
+.todosWrapper {
+    display: flex;
+    gap: 25px;
+    padding: 50px;
+}
+
+.taskList {
+    margin: 0 auto;
+    width: 250px;
+}
+
+.task {
+    display: flex;
+    justify-content: center;
+}
+
+.taskTitle {
+    width: 150px;
+    overflow:hidden;
+    display:inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.buttonsBlock {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
