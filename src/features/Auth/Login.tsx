@@ -31,7 +31,7 @@ export const Login = observer(() => {
     })
 
     if (auth.profile.isAuth) {
-        return <Navigate to={Path.TODOS}/>
+        return <Navigate to={Path.TODO}/>
     }
 
     return (

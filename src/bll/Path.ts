@@ -1,6 +1,6 @@
 export const Path = {
     LOGIN: '/login',
     REG: '/register',
-    TODOS: '/todos',
+    TODO: '/todo',
     404: '404'
 } as const

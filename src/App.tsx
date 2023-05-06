@@ -19,10 +19,10 @@ export const App = observer(() => {
             <Header/>
             {app.state.status === 'loading' && <LinearProgress/>}
             <Routes>
-                <Route path={'/'} element={<Navigate to={Path.TODOS}/>}/>
+                <Route path={'/'} element={<Navigate to={Path.TODO}/>}/>
                 <Route path={Path.REG} element={<Register/>}/>
                 <Route path={Path.LOGIN} element={<Login/>}/>
-                <Route path={Path.TODOS} element={<Todolist todolist={todos.todolist}
+                <Route path={Path.TODO} element={<Todolist todolist={todos.todolist}
                                                             fetchTodo={todos.fetchTodolist}
                                                             filter={todos.todolist.filter}
                                                             changeTodoFilter={todos.changeTodolistFilter}/>}/>
