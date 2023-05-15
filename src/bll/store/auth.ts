@@ -1,4 +1,4 @@
-import {makeAutoObservable} from "mobx";
+import {makeAutoObservable, runInAction} from "mobx";
 import {authAPI} from "api";
 import app from 'bll/store/app'
 import {StatusCode} from "api/types";
@@ -26,7 +26,9 @@ class Auth {
             const data = await authAPI.login(email, password)
 
             if (data.status === StatusCode.OK) {
-                this.profile.email = email
+                runInAction(()=>{
+                    this.profile.email = email
+                })
                 this.setIsAuthorized(true)
                 await localStorage.setItem('token', data.data.accessToken)
                 app.setAppStatus('succeeded')
@@ -39,7 +41,9 @@ class Auth {
     }
 
     setIsAuthorized = (isAuth: boolean) => {
-        this.profile.isAuth = isAuth
+        runInAction(()=>{
+            this.profile.isAuth = isAuth
+        })
     }
 
 }

@@ -1,4 +1,4 @@
-import {makeAutoObservable} from "mobx";
+import {makeAutoObservable, runInAction} from "mobx";
 import {todolistsAPI} from "api";
 import {StatusCode, TodolistDomainType} from "api/types";
 import tasks from "./tasks";
@@ -21,7 +21,9 @@ class Todolists {
         try {
             const data = await todolistsAPI.getTodolists()
             if (data.status === StatusCode.OK) {
-                this.todolist = {...data.data, filter: "all"}
+                runInAction(()=>{
+                    this.todolist = {...data.data, filter: "all"}
+                })
                 app.setAppStatus('succeeded')
                 return 'success'
             } else if (data.status === StatusCode.UNAUTHORIZED) {
@@ -51,7 +53,9 @@ class Todolists {
         try {
             const data = await todolistsAPI.renameTodolist(title)
             if (data.status === StatusCode.OK) {
-                this.todolist.title = title
+                runInAction(() => {
+                    this.todolist.title = title
+                })
                 app.setAppStatus('succeeded')
             } else {
                 handleAppErrors()
@@ -67,11 +71,15 @@ class Todolists {
         } else {
             await tasks.fetchTasks(filter)
         }
-        this.todolist.filter = filter
+        runInAction(() => {
+            this.todolist.filter = filter
+        })
     }
 
     resetTodolists() {
-        this.todolist = {} as todoType
+        runInAction(() => {
+            this.todolist = {} as todoType
+        })
     }
 }
 

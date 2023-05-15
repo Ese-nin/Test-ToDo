@@ -1,5 +1,5 @@
 import {StatusCode, StatusType, TaskDomainType} from "api/types";
-import {makeAutoObservable} from "mobx";
+import {makeAutoObservable, runInAction} from "mobx";
 import app, {AppStatusType} from 'bll/store/app'
 import {tasksAPI} from "api";
 import {FilterType} from "./todolists";
@@ -20,7 +20,9 @@ class Tasks {
         try {
             const data = filter ? await tasksAPI.getTasks(filter) : await tasksAPI.getTasks()
             if (data.status === StatusCode.OK) {
-                this.tasks = data.data.map(t => ({...t, entityStatus: 'idle'}))
+                runInAction(() => {
+                    this.tasks = data.data.map(t => ({...t, entityStatus: 'idle'}))
+                })
                 app.setAppStatus('succeeded')
             } else if (data.status === StatusCode.UNAUTHORIZED) {
                 app.setAppStatus('failed')
@@ -38,7 +40,9 @@ class Tasks {
         try {
             const data = await tasksAPI.addTask(todoId, title)
             if (data.status === StatusCode.CREATED) {
-                this.tasks.push({...data.data, status: 'undone', entityStatus: "idle"})
+                runInAction(() => {
+                    this.tasks.push({...data.data, status: 'undone', entityStatus: "idle"})
+                })
                 app.setAppStatus('succeeded')
             } else {
                 handleAppErrors()
@@ -54,7 +58,9 @@ class Tasks {
         try {
             const data = await tasksAPI.removeTask(taskId)
             if (data.status === StatusCode.OK) {
-                this.tasks = this.tasks.filter(t => t.id !== taskId)
+                runInAction(() => {
+                    this.tasks = this.tasks.filter(t => t.id !== taskId)
+                })
                 app.setAppStatus('succeeded')
             } else if (data.status === StatusCode.UNAUTHORIZED) {
                 app.setAppStatus('failed')
@@ -68,12 +74,16 @@ class Tasks {
     }
 
     changeTaskStatus = async (taskId: number, status: StatusType) => {
+        const filter = status === 'done' ? 'undone' : 'done'
         app.setAppStatus('loading')
         this.changeTaskEntityStatus(taskId, 'loading')
         try {
             const data = await tasksAPI.changeStatus(taskId, status)
             if (data.status === StatusCode.OK) {
-                this.tasks = this.tasks.map(t => t.id === taskId ? {...t, status} : t)
+                runInAction(() => {
+                    this.tasks = this.tasks.map(t => t.id === taskId ? {...t, status} : t)
+                })
+                await this.fetchTasks(filter)
                 app.setAppStatus('succeeded')
             } else {
                 handleAppErrors()
@@ -92,7 +102,9 @@ class Tasks {
         try {
             const data = await tasksAPI.renameTask(taskId, title)
             if (data.status === StatusCode.OK) {
-                this.tasks = this.tasks.map(t => t.id === taskId ? {...t, title} : t)
+                runInAction(() => {
+                    this.tasks = this.tasks.map(t => t.id === taskId ? {...t, title} : t)
+                })
                 app.setAppStatus('succeeded')
             } else {
                 handleAppErrors()
@@ -105,11 +117,15 @@ class Tasks {
     }
 
     changeTaskEntityStatus = (taskId: number, status: AppStatusType) => {
-        this.tasks = this.tasks.map(t => t.id === taskId ? {...t, entityStatus: status} : t)
+        runInAction(() => {
+            this.tasks = this.tasks.map(t => t.id === taskId ? {...t, entityStatus: status} : t)
+        })
     }
 
     resetTasks() {
-        this.tasks = []
+        runInAction(() => {
+            this.tasks = []
+        })
     }
 }
 
