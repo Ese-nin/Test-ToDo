@@ -1,6 +1,7 @@
 import {StatusCode, StatusType, TaskDomainType} from "api/types";
 import {makeAutoObservable, runInAction} from "mobx";
 import app, {AppStatusType} from 'bll/store/app'
+import todo from 'bll/store/todolists'
 import {tasksAPI} from "api";
 import {FilterType} from "./todolists";
 import {handleAppErrors, handleNetworkErrors} from "utils/handleErrors";
@@ -74,7 +75,11 @@ class Tasks {
     }
 
     changeTaskStatus = async (taskId: number, status: StatusType) => {
-        const filter = status === 'done' ? 'undone' : 'done'
+        let filter
+        if (todo.todolist.filter === "done" || todo.todolist.filter === "undone") {
+            filter = todo.todolist.filter
+        }
+
         app.setAppStatus('loading')
         this.changeTaskEntityStatus(taskId, 'loading')
         try {
@@ -83,7 +88,9 @@ class Tasks {
                 runInAction(() => {
                     this.tasks = this.tasks.map(t => t.id === taskId ? {...t, status} : t)
                 })
-                await this.fetchTasks(filter)
+                filter
+                    ? await this.fetchTasks(filter)
+                    : await this.fetchTasks()
                 app.setAppStatus('succeeded')
             } else {
                 handleAppErrors()
